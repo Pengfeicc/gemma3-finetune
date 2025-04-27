@@ -144,6 +144,9 @@ class SupervisedDataset(Dataset):
 
         for idx, j in enumerate(range(0, len(sources), 2)):
             user_input = sources[j]
+            if j + 1 >= len(sources):
+                print(f"Warning: Incomplete pair at index {j} for item {self.list_data_dict[i]['id']}, skipping"
+                break # raise ValueError(f"Incomplete pair at index {j}")
             gpt_response = sources[j + 1]
 
             if idx == 0 and len(SYSTEM_MESSAGE) > 0:
