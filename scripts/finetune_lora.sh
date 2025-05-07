@@ -3,20 +3,20 @@
 MODEL_NAME="google/gemma-3-4b-it"
 
 # It is strongly recommended to train Gemma3 models with the `eager` attention implementation instead of `flash_attention_2`
-
+# Cause the GPU limition i used a single A4000 GPU for finetuning, so this script is modified by using A4000 & cpu offload method
 export PYTHONPATH=src:$PYTHONPATH
 
 deepspeed src/train/train_sft.py \
     --lora_enable True \
     --vision_lora False \
     --use_dora False \
-    --lora_rank 64 \
-    --lora_alpha 64 \
+    --lora_rank 32 \
+    --lora_alpha 128 \
     --lora_dropout 0.05 \
     --lora_namespan_exclude "['lm_head', 'embed_tokens']" \
     --num_lora_modules -1 \
     --use_liger True \
-    --deepspeed scripts/zero3.json \
+    --deepspeed scripts/zero3_offload.json \
     --model_id $MODEL_NAME \
     --data_path /path/to/your/training/data.json \
     --image_folder /path/to/your/image/folder \
@@ -24,6 +24,7 @@ deepspeed src/train/train_sft.py \
     --freeze_projector False \
     --freeze_vision_tower False \
     --freeze_llm True \
+    --freeze_merger False \
     --bf16 True \
     --fp16 False \
     --output_dir output/test_lora \
@@ -41,7 +42,9 @@ deepspeed src/train/train_sft.py \
     --tf32 True \
     --gradient_checkpointing True \
     --report_to tensorboard \
+    --logging_dir output/logs \
     --lazy_preprocess True \
-    --dataloader_num_workers 4 \
-    --save_steps 500 \
-    --save_total_limit 10 \
+    --dataloader_num_workers 0 \
+    --save_strategy steps \
+    --save_steps 20 \
+    --save_total_limit 2 \
